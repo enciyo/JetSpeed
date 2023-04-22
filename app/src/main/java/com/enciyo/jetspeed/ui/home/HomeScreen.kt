@@ -101,7 +101,7 @@ fun StartButton(
             .size(180.dp)
             .wrapContentSize(align = Alignment.Center),
         color = MaterialTheme.colorScheme.onPrimary,
-        style = MaterialTheme.typography.headlineLarge
+        style = MaterialTheme.typography.displayLarge
     )
 }
 
@@ -122,12 +122,12 @@ fun ServerInfo(
     ) {
         Text(
             text = server.name + "/" + server.country,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSecondaryContainer
         )
         Text(
             text = server.sponsor,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer
         )
         TextButton(onClick = onClickChangeServer) {
@@ -150,6 +150,7 @@ fun HomeScreenPreview() {
                 error = "",
                 selectedServer = Server().also {
                     it.name = "Deneme"
+                    it.sponsor = "sada"
                 }
             ),
             {}
