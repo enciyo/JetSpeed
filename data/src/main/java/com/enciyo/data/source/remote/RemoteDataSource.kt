@@ -1,4 +1,4 @@
-package com.enciyo.data.source
+package com.enciyo.data.source.remote
 
 import com.enciyo.data.model.Server
 

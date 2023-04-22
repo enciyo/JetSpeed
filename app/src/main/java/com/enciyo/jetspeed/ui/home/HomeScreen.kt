@@ -54,7 +54,11 @@ fun HomeRoute(
                 state = state,
                 onClickChangeServer = {
                     scope.launch { it.show() }
-                })
+                },
+                onClickStart = {
+                    vm.getDownloadSpeedTest()
+                }
+            )
         },
         onSelected = {
             vm.onSelected(it)
@@ -65,9 +69,10 @@ fun HomeRoute(
 
 @Composable
 fun HomeScreen(
+    modifier: Modifier = Modifier,
     state: HomeScreenState,
     onClickChangeServer: () -> Unit,
-    modifier: Modifier = Modifier
+    onClickStart: () -> Unit,
 ) {
     val server = state.selectedServer
 
@@ -78,7 +83,10 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            StartButton()
+            StartButton(
+                onClick = onClickStart,
+                text  = state.text
+            )
             Spacer(modifier = Modifier.height(16.dp))
             AnimatedVisibility(visible = server != null) {
                 ServerInfo(server = server!!, onClickChangeServer = onClickChangeServer)
@@ -90,10 +98,14 @@ fun HomeScreen(
 @Composable
 fun StartButton(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit,
+    text: String
 ) {
+
+    val onText = text.ifEmpty { stringResource(id = R.string.go) }
+
     Text(
-        text = stringResource(R.string.go),
+        text = onText,
         modifier = modifier
             .clip(shape = CircleShape)
             .background(MaterialTheme.colorScheme.primary)
@@ -101,7 +113,7 @@ fun StartButton(
             .size(180.dp)
             .wrapContentSize(align = Alignment.Center),
         color = MaterialTheme.colorScheme.onPrimary,
-        style = MaterialTheme.typography.displayLarge
+        style = if (text.isEmpty()) MaterialTheme.typography.displayLarge else MaterialTheme.typography.titleMedium
     )
 }
 
@@ -144,7 +156,7 @@ fun ServerInfo(
 fun HomeScreenPreview() {
     JetSpeedTheme {
         HomeScreen(
-            HomeScreenState(
+            state = HomeScreenState(
                 servers = emptyList(),
                 loading = false,
                 error = "",
@@ -153,7 +165,8 @@ fun HomeScreenPreview() {
                     it.sponsor = "sada"
                 }
             ),
-            {}
+            onClickStart = {},
+            onClickChangeServer = {}
         )
     }
 }
