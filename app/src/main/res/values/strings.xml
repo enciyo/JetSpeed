@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">JetSpeed</string>
+    <string name="go">Go</string>
+    <string name="change_server">Change Server</string>
 </resources>
