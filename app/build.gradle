@@ -74,12 +74,13 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     //Hilt
     def hiltVersion = "2.45"
+    def lottieVersion = "6.0.0"
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     kapt("com.google.dagger:hilt-compiler:$hiltVersion")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-
+    implementation "com.airbnb.android:lottie-compose:$lottieVersion"
 
 
     implementation project(":data")
