@@ -10,7 +10,6 @@ import com.enciyo.data.source.remote.RemoteDataSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -29,6 +28,9 @@ class HomeViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(HomeScreenState(loading = true))
     val uiState = _uiState.asStateFlow()
+
+    private val _progressState = MutableStateFlow(ProgressState())
+    val progressState = _progressState.asStateFlow()
 
 
     init {
@@ -61,10 +63,13 @@ class HomeViewModel @Inject constructor(
             val host = localDataSource.store.first().host
             speedTestSource.getDownloadSpeed(host)
                 .onEach { result ->
-                    _uiState.update {
+                    _progressState.update {
                         when (result) {
                             SpeedTestResult.OnComplete -> it
-                            is SpeedTestResult.OnProgress -> it.copy(text = result.transferRateBit.toString())
+                            is SpeedTestResult.OnProgress -> it.copy(
+                                text = result.transferRateBit,
+                                percent = result.percent
+                            )
                         }
                     }
                 }
@@ -83,11 +88,14 @@ class HomeViewModel @Inject constructor(
     }
 }
 
-
 data class HomeScreenState(
     val servers: List<Server> = emptyList(),
     val loading: Boolean = false,
     val error: String = "",
     val selectedServer: Server? = null,
-    val text: String = ""
+)
+
+data class ProgressState(
+    val text: String = "",
+    val percent: Float = 0.1f
 )

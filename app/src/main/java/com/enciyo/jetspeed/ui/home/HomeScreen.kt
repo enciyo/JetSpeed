@@ -2,7 +2,6 @@
 
 package com.enciyo.jetspeed.ui.home
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -38,7 +37,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.airbnb.lottie.LottieProperty
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.airbnb.lottie.compose.rememberLottieDynamicProperties
 import com.airbnb.lottie.compose.rememberLottieDynamicProperty
@@ -54,6 +52,7 @@ fun HomeRoute(
     vm: HomeViewModel = viewModel()
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
+    val progressState by vm.progressState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     ServerListModalBottomSheet(
         servers = state.servers,
@@ -62,6 +61,7 @@ fun HomeRoute(
             HomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
+                progressState = progressState,
                 onClickChangeServer = {
                     scope.launch { it.show() }
                 },
@@ -70,9 +70,7 @@ fun HomeRoute(
                 }
             )
         },
-        onSelected = {
-            vm.onSelected(it)
-        }
+        onSelected = vm::onSelected
     )
 }
 
@@ -81,11 +79,11 @@ fun HomeRoute(
 fun HomeScreen(
     modifier: Modifier = Modifier,
     state: HomeScreenState,
+    progressState: ProgressState,
     onClickChangeServer: () -> Unit,
     onClickStart: () -> Unit,
 ) {
     val server = state.selectedServer
-
     Box(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
         Column(
             modifier = Modifier
@@ -93,15 +91,15 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AnimatedVisibility(state.text.isNotEmpty()) {
-                SpeedMeter()
+            AnimatedVisibility(progressState.text.isNotEmpty()) {
+                SpeedMeter(progressState.percent)
             }
             StartButton(
                 onClick = onClickStart,
-                text = state.text
+                text = progressState.text
             )
             Spacer(modifier = Modifier.height(16.dp))
-            AnimatedVisibility(visible = server != null && state.text.isEmpty()) {
+            AnimatedVisibility(visible = server != null && progressState.text.isEmpty()) {
                 ServerInfo(server = server!!, onClickChangeServer = onClickChangeServer)
             }
         }
@@ -116,6 +114,8 @@ fun StartButton(
 ) {
 
     val onText = text.ifEmpty { stringResource(id = R.string.go) }
+    val style =
+        if (text.isEmpty()) MaterialTheme.typography.displayLarge else MaterialTheme.typography.titleMedium
 
     Text(
         text = onText,
@@ -126,7 +126,7 @@ fun StartButton(
             .size(180.dp)
             .wrapContentSize(align = Alignment.Center),
         color = MaterialTheme.colorScheme.onPrimary,
-        style = if (text.isEmpty()) MaterialTheme.typography.displayLarge else MaterialTheme.typography.titleMedium,
+        style = style,
     )
 }
 
@@ -165,9 +165,8 @@ fun ServerInfo(
     }
 }
 
-@SuppressLint("UnrememberedMutableState")
 @Composable
-fun SpeedMeter() {
+fun SpeedMeter(progress: Float) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.lottie_speed_meters))
     val dynamicProperties = rememberLottieDynamicProperties(
         rememberLottieDynamicProperty(
@@ -189,12 +188,14 @@ fun SpeedMeter() {
             "**",
         ),
     )
-
     LottieAnimation(
         composition = composition,
         dynamicProperties = dynamicProperties,
-        enableMergePaths = true
+        progress = {
+            progress
+        },
     )
+
 }
 
 
@@ -215,7 +216,8 @@ fun HomeScreenPreview() {
                 }
             ),
             onClickStart = {},
-            onClickChangeServer = {}
+            onClickChangeServer = {},
+            progressState = ProgressState()
         )
     }
 }
