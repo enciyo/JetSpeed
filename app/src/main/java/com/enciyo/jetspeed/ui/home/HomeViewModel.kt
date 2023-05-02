@@ -2,100 +2,79 @@ package com.enciyo.jetspeed.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.enciyo.data.model.Server
-import com.enciyo.data.model.SpeedTestResult
-import com.enciyo.data.source.SpeedTestSource
-import com.enciyo.data.source.local.LocalDataSource
-import com.enciyo.data.source.remote.RemoteDataSource
+import com.example.domain.usecase.GetServersUseCase
+import com.example.domain.usecase.UpdateHostUseCase
+import com.example.domain.model.Server
+import com.example.onFailure
+import com.example.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val remoteDataSource: RemoteDataSource,
-    private val localDataSource: LocalDataSource,
-    private val speedTestSource: SpeedTestSource
+    private val getServersUseCase: GetServersUseCase,
+    private val updateHostUseCase: UpdateHostUseCase,
 ) : ViewModel() {
 
-
-    private val _uiState = MutableStateFlow(HomeScreenState(loading = true))
+    private val _uiState = MutableStateFlow(HomeUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _progressState = MutableStateFlow(ProgressState())
-    val progressState = _progressState.asStateFlow()
-
-
     init {
-        viewModelScope.launch {
-            remoteDataSource.getSettings()
-                .fold(
-                    onSuccess = { result ->
-                        _uiState.update {
-                            it.copy(
-                                loading = false,
-                                servers = result,
-                                selectedServer = null
-                            )
-                        }
-                        result.firstOrNull()?.let(::onSelected)
-                    },
-                    onFailure = { throwable ->
-                        _uiState.update {
-                            it.copy(
-                                loading = false,
-                                error = throwable.message.orEmpty()
-                            )
-                        }
-                    })
+        getServersUseCase.invoke(Unit)
+            .onSuccess(::onSuccessSettings)
+            .onFailure(::onFailureSettings)
+            .launchIn(viewModelScope)
+    }
+
+    private fun onSuccessSettings(settings: List<Server>) {
+        updateState {
+            it.copy(
+                servers = settings,
+                currentServer = settings.firstOrNull()
+            )
         }
     }
 
-    fun getDownloadSpeedTest() {
-        viewModelScope.launch {
-            val host = localDataSource.store.first().host
-            speedTestSource.getDownloadSpeed(host)
-                .onEach { result ->
-                    _progressState.update {
-                        when (result) {
-                            SpeedTestResult.OnComplete -> it
-                            is SpeedTestResult.OnProgress -> it.copy(
-                                text = result.transferRateBit,
-                                percent = result.percent
-                            )
-                        }
-                    }
-                }
-                .launchIn(viewModelScope)
+    private fun onFailureSettings(throwable: Throwable) {
+        updateState { it.copy(error = throwable.message) }
+    }
+
+
+    fun onEvent(interactions: HomeScreenInteractions) {
+        when (interactions) {
+            is HomeScreenInteractions.OnSelected -> onSelected(interactions.server)
         }
 
     }
 
-    fun onSelected(server: Server) {
-        viewModelScope.launch {
-            localDataSource.updateHost(server.host)
-            _uiState.update { homeScreenState ->
-                homeScreenState.copy(selectedServer = server)
+    private fun onSelected(server: Server) {
+        updateHostUseCase.invoke(server)
+            .onSuccess { result ->
+                updateState { it.copy(currentServer = result) }
             }
+            .launchIn(viewModelScope)
+
+    }
+
+    private fun updateState(newState: (HomeUiState) -> HomeUiState) {
+        _uiState.update {
+            newState.invoke(it)
         }
     }
+
 }
 
-data class HomeScreenState(
+data class HomeUiState(
     val servers: List<Server> = emptyList(),
-    val loading: Boolean = false,
-    val error: String = "",
-    val selectedServer: Server? = null,
+    val currentServer: Server? = null,
+    val error: String? = null
 )
 
-data class ProgressState(
-    val text: String = "",
-    val percent: Float = 0.1f
-)
+sealed interface HomeScreenInteractions {
+    data class OnSelected(val server: Server) : HomeScreenInteractions
+}
