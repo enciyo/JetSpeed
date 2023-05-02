@@ -16,10 +16,8 @@ import androidx.compose.material.Icon
 import androidx.compose.material.ListItem
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowRight
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,42 +27,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.enciyo.data.model.Server
+import com.enciyo.data.model.ServerResponse
 import kotlinx.coroutines.launch
 
 @Composable
 fun ServerListModalBottomSheet(
-    servers: List<Server>,
-    onSelected: (Server) -> Unit,
-    content: @Composable (ModalBottomSheetState) -> Unit,
+    servers: List<ServerResponse>,
+    onSelected: (ServerResponse) -> Unit,
+    content: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    state: ModalBottomSheetState,
 ) {
-
-    val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
 
     ModalBottomSheetLayout(
-        sheetState = sheetState,
+        sheetState = state,
         sheetShape = RoundedCornerShape(topStartPercent = 5, topEndPercent = 5),
         modifier = modifier,
         sheetContent = {
             ServerList(servers, onClick = {
                 onSelected.invoke(it)
                 scope.launch {
-                    sheetState.hide()
+                    state.hide()
                 }
             })
         },
         content = {
-            content.invoke(sheetState)
+            content()
         }
     )
 }
 
 @Composable
 fun ServerList(
-    servers: List<Server>,
-    onClick: (Server) -> Unit,
+    servers: List<ServerResponse>,
+    onClick: (ServerResponse) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -86,8 +83,8 @@ fun ServerList(
 
 @Composable
 fun ServerListItem(
-    server: Server,
-    onClick: (Server) -> Unit,
+    server: ServerResponse,
+    onClick: (ServerResponse) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ListItem(

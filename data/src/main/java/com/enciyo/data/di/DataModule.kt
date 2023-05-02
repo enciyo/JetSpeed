@@ -4,14 +4,15 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.datastore.preferences.preferencesDataStoreFile
 import com.enciyo.data.Network
+import com.enciyo.data.RepositoryImp
 import com.enciyo.data.source.SpeedTestSource
 import com.enciyo.data.source.SpeedTestSourceImp
 import com.enciyo.data.source.local.LocalDataSource
 import com.enciyo.data.source.local.LocalDataSourceImp
 import com.enciyo.data.source.remote.RemoteDataSource
 import com.enciyo.data.source.remote.RemoteDataSourceImp
+import com.example.domain.Repository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -60,15 +61,19 @@ interface DataModule {
 
     @Binds
     @Reusable
-    fun provideRemoteDataSource(remoteDataSourceImp: RemoteDataSourceImp): RemoteDataSource
+    fun bindRemoteDataSource(remoteDataSourceImp: RemoteDataSourceImp): RemoteDataSource
 
     @Binds
     @Reusable
-    fun provideSpeedTestSource(speedTestSourceImp: SpeedTestSourceImp): SpeedTestSource
+    fun bindSpeedTestSource(speedTestSourceImp: SpeedTestSourceImp): SpeedTestSource
 
     @Binds
     @Reusable
-    fun provideLocalDataSource(localDataSourceImp: LocalDataSourceImp): LocalDataSource
+    fun bindLocalDataSource(localDataSourceImp: LocalDataSourceImp): LocalDataSource
+
+    @Binds
+    @Reusable
+    fun bindRepository(repositoryImp: RepositoryImp): Repository
 
 
 }

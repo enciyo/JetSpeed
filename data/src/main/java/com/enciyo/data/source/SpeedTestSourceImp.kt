@@ -1,8 +1,8 @@
 package com.enciyo.data.source
 
-import com.enciyo.data.model.SpeedTestResult
 import com.enciyo.data.ext.createSpeedTestListener
 import com.enciyo.data.ext.toHumanReadable
+import com.enciyo.data.model.SpeedTestResult
 import fr.bmartel.speedtest.SpeedTestSocket
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -26,17 +26,15 @@ class SpeedTestSourceImp @Inject constructor() : SpeedTestSource {
             val listener = createSpeedTestListener(
                 onCompletion = {
                     val ort = transferBit.sumOf { it }.div(transferBit.size.toBigDecimal())
-                    trySendBlocking(SpeedTestResult.OnProgress(1f, ort.toHumanReadable()))
+                    trySendBlocking(SpeedTestResult.OnProgress(1.0f, ort.toHumanReadable()))
                     trySendBlocking(SpeedTestResult.OnComplete)
                 },
                 onProgress = { percent, report ->
+                    val animPercent = 0.125f + (percent * 0.001f)
+                    val humanReadable = report.transferRateBit.toHumanReadable()
                     transferBit.add(report.transferRateBit)
-                    trySendBlocking(
-                        SpeedTestResult.OnProgress(
-                            percent,
-                            report.transferRateBit.toHumanReadable()
-                        )
-                    )
+                    val progress = SpeedTestResult.OnProgress(animPercent, humanReadable)
+                    trySendBlocking(progress)
                 },
                 onError = { _, errorMessage ->
                     close(Throwable(errorMessage))
@@ -48,7 +46,7 @@ class SpeedTestSourceImp @Inject constructor() : SpeedTestSource {
             else
                 socket.startUpload(
                     "https://$host/upload?nocache=${UUID.randomUUID()}&guid=${UUID.randomUUID()}",
-                    1000000
+                    1000000000
                 )
 
             awaitClose {
@@ -56,7 +54,6 @@ class SpeedTestSourceImp @Inject constructor() : SpeedTestSource {
             }
         }
             .flowOn(Dispatchers.IO)
-
 
 
 }
