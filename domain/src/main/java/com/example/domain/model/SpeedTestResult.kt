@@ -1,6 +1,4 @@
-package com.enciyo.data.model
-
-import java.math.BigDecimal
+package com.example.domain.model
 
 sealed interface SpeedTestResult {
     data class OnProgress(

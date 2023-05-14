@@ -2,7 +2,7 @@ package com.enciyo.data.source
 
 import com.enciyo.data.ext.createSpeedTestListener
 import com.enciyo.data.ext.toHumanReadable
-import com.enciyo.data.model.SpeedTestResult
+import com.example.domain.model.SpeedTestResult
 import fr.bmartel.speedtest.SpeedTestSocket
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -46,7 +46,7 @@ class SpeedTestSourceImp @Inject constructor() : SpeedTestSource {
             else
                 socket.startUpload(
                     "https://$host/upload?nocache=${UUID.randomUUID()}&guid=${UUID.randomUUID()}",
-                    1000000000
+                    10000000
                 )
 
             awaitClose {

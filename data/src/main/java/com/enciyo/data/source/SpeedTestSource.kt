@@ -1,6 +1,6 @@
 package com.enciyo.data.source
 
-import com.enciyo.data.model.SpeedTestResult
+import com.example.domain.model.SpeedTestResult
 import kotlinx.coroutines.flow.Flow
 
 

@@ -29,27 +29,24 @@ import androidx.compose.ui.unit.dp
 import com.example.domain.model.Server
 
 @Composable
-fun ServerListModalBottomSheet(
+fun ServersModalBottomSheet(
     modifier: Modifier = Modifier,
     servers: List<Server>,
     onChangeServer: (Server) -> Unit,
     content: @Composable () -> Unit,
     state: ModalBottomSheetState,
 ) {
-
     ModalBottomSheetLayout(
         sheetState = state,
         sheetShape = RoundedCornerShape(topStartPercent = 5, topEndPercent = 5),
         modifier = modifier,
-        sheetContent = {
-            ServerList(servers = servers, onChangeServer = onChangeServer)
-        },
+        sheetContent = { ServersContent(servers = servers, onChangeServer = onChangeServer) },
         content = content
     )
 }
 
 @Composable
-fun ServerList(
+fun ServersContent(
     modifier: Modifier = Modifier,
     servers: List<Server>,
     onChangeServer: (Server) -> Unit,
@@ -65,14 +62,14 @@ fun ServerList(
             }
         }
         items(servers) { server ->
-            ServerListItem(server = server, onChangeServer = onChangeServer)
+            ServerItemContent(server = server, onChangeServer = onChangeServer)
         }
     }
 }
 
 
 @Composable
-fun ServerListItem(
+fun ServerItemContent(
     modifier: Modifier = Modifier,
     server: Server,
     onChangeServer: (Server) -> Unit,

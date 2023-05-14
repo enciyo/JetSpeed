@@ -4,7 +4,7 @@ import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Root
 
 @Root(name = "server", strict = false)
-internal class ServerResponse {
+class ServerResponse {
     @field:Attribute(required = true, name = "url")
     lateinit var url: String
 

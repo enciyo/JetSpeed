@@ -6,7 +6,9 @@ import com.enciyo.data.source.remote.RemoteDataSource
 import com.example.domain.Repository
 import com.example.domain.model.Server
 import dagger.Reusable
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class RepositoryImp @Inject constructor(
@@ -24,5 +26,15 @@ class RepositoryImp @Inject constructor(
         localDataSource.updateHost(server.host)
         emit(Result.success(server))
     }
+
+    override fun getDownloadSpeed() =
+        localDataSource.store
+            .map { it.host }
+            .flatMapConcat { speedTestSource.getDownloadSpeed(it) }
+
+
+    override fun getUploadSpeed() = localDataSource.store
+        .map { it.host }
+        .flatMapConcat { speedTestSource.getUploadSpeed(it) }
 
 }

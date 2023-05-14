@@ -21,79 +21,58 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.enciyo.data.model.ServerResponse
 import com.enciyo.jetspeed.R
 import com.enciyo.jetspeed.ui.component.CircleButton
 import com.enciyo.jetspeed.ui.theme.JetSpeedTheme
-import kotlinx.coroutines.launch
+import com.example.domain.model.Server
 
-
-@ExperimentalMaterialApi
 @Composable
 fun HomeRoute(
-    modifier: Modifier = Modifier,
-    vm: HomeViewModel = viewModel()
+    vm: HomeViewModel = hiltViewModel(),
+    onNavigateSpeedRoute: () -> Unit
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
-    val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
-    val scope = rememberCoroutineScope()
+    val stateSheet = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
-    ServerListModalBottomSheet(
+    LaunchedEffect(key1 = state.isVisibleModal) {
+        if (state.isVisibleModal) stateSheet.show() else stateSheet.hide()
+    }
+
+    ServersModalBottomSheet(
         servers = state.servers,
-        modifier = modifier,
-        state = sheetState,
+        state = stateSheet,
         content = {
-            ModalBottomSheetContent(
-                state = state,
-                onClickChangeServer = { scope.launch { sheetState.show() } },
-                onClickStart = {
-
-                }
+            HomeContent(
+                selectedServer = state.currentServer,
+                onClickChangeServer = { vm.onEvent(HomeScreenInteractions.ShowModal) },
+                onClickStart = onNavigateSpeedRoute
             )
         },
-        onSelected = {
+        onChangeServer = {
             vm.onEvent(HomeScreenInteractions.OnSelected(it))
         },
     )
 }
 
-
 @Composable
-fun ModalBottomSheetContent(
+fun HomeContent(
     modifier: Modifier = Modifier,
-    state: HomeUiState,
-    onClickChangeServer: () -> Unit,
-    onClickStart: () -> Unit
-) {
-    HomeScreen(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        selectedServer = state.currentServer,
-        onClickChangeServer = onClickChangeServer,
-        onClickStart = onClickStart
-    )
-}
-
-@Composable
-fun HomeScreen(
-    modifier: Modifier = Modifier,
-    selectedServer: ServerResponse? = null,
+    selectedServer: Server? = null,
     onClickChangeServer: () -> Unit,
     onClickStart: () -> Unit,
 ) {
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.align(Alignment.Center),
             verticalArrangement = Arrangement.Bottom,
@@ -106,15 +85,18 @@ fun HomeScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             AnimatedVisibility(visible = selectedServer != null) {
-                SelectableServerInfo(server = selectedServer!!, onChangeServer = onClickChangeServer)
+                SelectableServerInfoContent(
+                    server = selectedServer!!,
+                    onChangeServer = onClickChangeServer
+                )
             }
         }
     }
 }
 
 @Composable
-fun SelectableServerInfo(
-    server: ServerResponse,
+fun SelectableServerInfoContent(
+    server: Server,
     onChangeServer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -148,13 +130,12 @@ fun SelectableServerInfo(
 }
 
 
-
 @Preview(name = "Light Mode", showBackground = true)
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Preview(name = "Full Preview", showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
     JetSpeedTheme {
-        HomeScreen(onClickChangeServer = { }) {}
+        HomeContent(onClickChangeServer = { }) {}
     }
 }

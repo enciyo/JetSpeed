@@ -26,45 +26,42 @@ class HomeViewModel @Inject constructor(
 
     init {
         getServersUseCase.invoke(Unit)
-            .onSuccess(::onSuccessSettings)
-            .onFailure(::onFailureSettings)
+            .onSuccess { settings ->
+                _uiState.update {
+                    it.copy(
+                        servers = settings,
+                        currentServer = settings.firstOrNull()
+                    )
+                }
+            }
+            .onFailure { throwable ->
+                _uiState.update { it.copy(error = throwable.message) }
+            }
             .launchIn(viewModelScope)
     }
-
-    private fun onSuccessSettings(settings: List<Server>) {
-        updateState {
-            it.copy(
-                servers = settings,
-                currentServer = settings.firstOrNull()
-            )
-        }
-    }
-
-    private fun onFailureSettings(throwable: Throwable) {
-        updateState { it.copy(error = throwable.message) }
-    }
-
 
     fun onEvent(interactions: HomeScreenInteractions) {
         when (interactions) {
             is HomeScreenInteractions.OnSelected -> onSelected(interactions.server)
+            is HomeScreenInteractions.ShowModal -> onShowModal()
         }
 
+    }
+
+    private fun onShowModal() {
+        _uiState.update { it.copy(isVisibleModal = true) }
     }
 
     private fun onSelected(server: Server) {
         updateHostUseCase.invoke(server)
             .onSuccess { result ->
-                updateState { it.copy(currentServer = result) }
+                _uiState.update { it.copy(currentServer = result, isVisibleModal = false) }
+            }
+            .onFailure {
+                _uiState.update { it.copy(error = it.error, isVisibleModal = false) }
             }
             .launchIn(viewModelScope)
 
-    }
-
-    private fun updateState(newState: (HomeUiState) -> HomeUiState) {
-        _uiState.update {
-            newState.invoke(it)
-        }
     }
 
 }
@@ -72,9 +69,12 @@ class HomeViewModel @Inject constructor(
 data class HomeUiState(
     val servers: List<Server> = emptyList(),
     val currentServer: Server? = null,
-    val error: String? = null
+    val error: String? = null,
+    val isVisibleModal: Boolean = false
 )
 
 sealed interface HomeScreenInteractions {
+    object ShowModal : HomeScreenInteractions
+
     data class OnSelected(val server: Server) : HomeScreenInteractions
 }

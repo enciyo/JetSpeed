@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 @Reusable
 class ServerMapper @Inject constructor() : Mapper<ServerResponse, Server> {
-    override fun mapTo(input: ServerResponse): Server = Server(
+     override fun mapTo(input: ServerResponse): Server = Server(
         url = input.url,
         name = input.name,
         country = input.country,

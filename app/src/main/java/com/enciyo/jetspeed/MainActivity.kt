@@ -1,41 +1,56 @@
 package com.enciyo.jetspeed
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.lifecycleScope
-import com.enciyo.data.source.SpeedTestSource
-import com.enciyo.data.model.SpeedTestResult
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.enciyo.jetspeed.ui.home.HomeRoute
+import com.enciyo.jetspeed.ui.speed.SpeedRoute
 import com.enciyo.jetspeed.ui.theme.JetSpeedTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
+@ExperimentalMaterialApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             JetSpeedTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    HomeRoute()
+                    AppNavHost()
                 }
             }
         }
-
     }
+}
+
+
+@Composable
+fun AppNavHost(navController: NavHostController = rememberNavController()) {
+    NavHost(navController = navController, startDestination = Screens.HOME) {
+        composable(Screens.HOME) {
+            HomeRoute(onNavigateSpeedRoute = { navController.navigate(Screens.MEASURING_SPEED) })
+        }
+        composable(Screens.MEASURING_SPEED) {
+            SpeedRoute()
+        }
+    }
+}
+
+
+object Screens {
+    const val HOME = "Home"
+    const val MEASURING_SPEED = "MeasuringSpeed"
 }
