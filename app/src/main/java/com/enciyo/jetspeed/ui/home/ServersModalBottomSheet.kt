@@ -22,47 +22,37 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.enciyo.data.model.ServerResponse
-import kotlinx.coroutines.launch
+import com.example.domain.model.Server
 
 @Composable
 fun ServerListModalBottomSheet(
-    servers: List<ServerResponse>,
-    onSelected: (ServerResponse) -> Unit,
-    content: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    servers: List<Server>,
+    onChangeServer: (Server) -> Unit,
+    content: @Composable () -> Unit,
     state: ModalBottomSheetState,
 ) {
-    val scope = rememberCoroutineScope()
 
     ModalBottomSheetLayout(
         sheetState = state,
         sheetShape = RoundedCornerShape(topStartPercent = 5, topEndPercent = 5),
         modifier = modifier,
         sheetContent = {
-            ServerList(servers, onClick = {
-                onSelected.invoke(it)
-                scope.launch {
-                    state.hide()
-                }
-            })
+            ServerList(servers = servers, onChangeServer = onChangeServer)
         },
-        content = {
-            content()
-        }
+        content = content
     )
 }
 
 @Composable
 fun ServerList(
-    servers: List<ServerResponse>,
-    onClick: (ServerResponse) -> Unit,
     modifier: Modifier = Modifier,
+    servers: List<Server>,
+    onChangeServer: (Server) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier
@@ -71,11 +61,11 @@ fun ServerList(
     ) {
         item {
             Box(modifier = Modifier.fillMaxWidth()) {
-                DragView(modifier = Modifier.align(Alignment.Center))
+                TopLine(modifier = Modifier.align(Alignment.Center))
             }
         }
         items(servers) { server ->
-            ServerListItem(server = server, onClick)
+            ServerListItem(server = server, onChangeServer = onChangeServer)
         }
     }
 }
@@ -83,14 +73,12 @@ fun ServerList(
 
 @Composable
 fun ServerListItem(
-    server: ServerResponse,
-    onClick: (ServerResponse) -> Unit,
     modifier: Modifier = Modifier,
+    server: Server,
+    onChangeServer: (Server) -> Unit,
 ) {
     ListItem(
-        modifier = modifier.clickable(onClick = {
-            onClick.invoke(server)
-        }),
+        modifier = modifier.clickable(onClick = { onChangeServer(server) }),
         text = {
             Text(
                 text = server.name + "/" + server.country,
@@ -115,9 +103,8 @@ fun ServerListItem(
     )
 }
 
-
 @Composable
-fun DragView(modifier: Modifier) {
+fun TopLine(modifier: Modifier) {
     Divider(
         modifier = modifier
             .clip(RoundedCornerShape(4.dp))
