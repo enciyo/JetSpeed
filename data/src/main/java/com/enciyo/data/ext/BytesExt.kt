@@ -11,14 +11,14 @@ fun BigDecimal.toHumanReadable(): String {
     return if (bytes >= BigDecimal(0) && (bytes < kilobyte)) {
         "$bytes B"
     } else if (bytes >= kilobyte && (bytes < megabyte)) {
-        (bytes / kilobyte).toString() + " KB"
+        (bytes / kilobyte).toString() + " Kbps"
     } else if (bytes >= megabyte && (bytes < gigabyte)) {
-        (bytes / megabyte).toString() + " MB"
+        (bytes / megabyte).toString() + " Mbps"
     } else if (bytes >= gigabyte && (bytes < terabyte)) {
-        (bytes / gigabyte).toString() + " GB"
+        (bytes / gigabyte).toString() + " Gbps"
     } else if (bytes >= terabyte) {
-        (bytes / terabyte).toString() + " TB"
+        (bytes / terabyte).toString() + " Tbps"
     } else {
-        "$bytes Bytes"
+        "$bytes Bps"
     }
 }

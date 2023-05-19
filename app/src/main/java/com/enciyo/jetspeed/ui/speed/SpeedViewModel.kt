@@ -21,21 +21,32 @@ class SpeedViewModel @Inject constructor(private val repository: Repository) : V
     private val _uiState = MutableStateFlow(SpeedUiState())
     val state = _uiState.asStateFlow()
 
+
     init {
+        start()
+    }
+
+    private fun start(){
         getDownloadSpeed()
     }
 
+
     private fun getDownloadSpeed() {
-        repository
-            .getDownloadSpeed()
+        repository.getDownloadSpeed()
             .onEach { result ->
                 when (result) {
-                    is SpeedTestResult.OnComplete -> getUploadSpeed()
-                    is SpeedTestResult.OnProgress -> _uiState.update {
-                        it.copy(
-                            downloadTime = result.transferRateBit,
-                            progress = result.percent
-                        )
+                    is SpeedTestResult.OnComplete -> {
+                        _uiState.update {
+                            it.copy(
+                                downloadTime = result.time,
+                                speedText = "",
+                            )
+                        }
+                        getUploadSpeed()
+                    }
+
+                    is SpeedTestResult.OnProgress -> {
+                        onProgress(result)
                     }
                 }
             }
@@ -43,21 +54,40 @@ class SpeedViewModel @Inject constructor(private val repository: Repository) : V
     }
 
 
-    private fun getUploadSpeed(){
-        repository
-            .getUploadSpeed()
+    private fun getUploadSpeed() {
+        repository.getUploadSpeed()
             .onEach { result ->
                 when (result) {
-                    is SpeedTestResult.OnComplete -> Unit
-                    is SpeedTestResult.OnProgress -> _uiState.update {
-                        it.copy(
-                            uploadTime = result.transferRateBit,
-                            progress = result.percent
-                        )
+                    is SpeedTestResult.OnComplete -> {
+                        _uiState.update {
+                            it.copy(
+                                uploadTime = result.time,
+                                speedText = "",
+                                progress = 0f,
+                                isCompleted = true,
+                            )
+                        }
                     }
+
+                    is SpeedTestResult.OnProgress -> onProgress(result)
                 }
             }
             .launchIn(viewModelScope)
+    }
+
+    private fun onProgress(result: SpeedTestResult.OnProgress) {
+        _uiState.update {
+            it.copy(
+                speedText = result.transferRateBit,
+                progress = result.percent,
+                isCompleted = false
+            )
+        }
+    }
+
+    fun retry() {
+        _uiState.value = SpeedUiState()
+        start()
     }
 
 
@@ -68,5 +98,6 @@ data class SpeedUiState(
     val uploadTime: String = "-",
     val downloadTime: String = "-",
     val speedText: String = "",
-    val progress: Float = 10f
+    val progress: Float = 0f,
+    val isCompleted: Boolean = false
 )

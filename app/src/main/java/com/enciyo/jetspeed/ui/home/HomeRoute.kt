@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,9 +24,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +38,7 @@ import com.enciyo.jetspeed.R
 import com.enciyo.jetspeed.ui.component.CircleButton
 import com.enciyo.jetspeed.ui.theme.JetSpeedTheme
 import com.example.domain.model.Server
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeRoute(
@@ -43,10 +47,7 @@ fun HomeRoute(
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
     val stateSheet = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
-
-    LaunchedEffect(key1 = state.isVisibleModal) {
-        if (state.isVisibleModal) stateSheet.show() else stateSheet.hide()
-    }
+    val scope = rememberCoroutineScope()
 
     ServersModalBottomSheet(
         servers = state.servers,
@@ -54,7 +55,9 @@ fun HomeRoute(
         content = {
             HomeContent(
                 selectedServer = state.currentServer,
-                onClickChangeServer = { vm.onEvent(HomeScreenInteractions.ShowModal) },
+                onClickChangeServer = {
+                    scope.launch { stateSheet.show() }
+                },
                 onClickStart = onNavigateSpeedRoute
             )
         },

@@ -15,26 +15,31 @@ import javax.inject.Inject
 
 class SpeedTestSourceImp @Inject constructor() : SpeedTestSource {
 
+    companion object {
+        private const val OCTETS_TO_MB = 1_048_576
+        const val SIZE_DOWNLOAD = 100 * OCTETS_TO_MB
+        const val SIZE_UPLOAD = 10 * OCTETS_TO_MB
+    }
+
     override fun getDownloadSpeed(host: String) = getSpeed(isDownload = true, host = host)
 
     override fun getUploadSpeed(host: String) = getSpeed(isDownload = false, host = host)
 
-    private fun getSpeed(isDownload: Boolean, host: String) =
-        callbackFlow<SpeedTestResult> {
+    //TO-DO reorganize code by business logic, it contains the presentation logic.
+    private fun getSpeed(isDownload: Boolean, host: String) = callbackFlow {
             val socket = SpeedTestSocket()
-            val transferBit = arrayListOf<BigDecimal>()
             val listener = createSpeedTestListener(
                 onCompletion = {
-                    val ort = transferBit.sumOf { it }.div(transferBit.size.toBigDecimal())
-                    trySendBlocking(SpeedTestResult.OnProgress(1.0f, ort.toHumanReadable()))
-                    trySendBlocking(SpeedTestResult.OnComplete)
+                    trySendBlocking(SpeedTestResult.OnComplete(it.transferRateBit.toHumanReadable()))
                 },
                 onProgress = { percent, report ->
                     val animPercent = 0.125f + (percent * 0.001f)
-                    val humanReadable = report.transferRateBit.toHumanReadable()
-                    transferBit.add(report.transferRateBit)
-                    val progress = SpeedTestResult.OnProgress(animPercent, humanReadable)
-                    trySendBlocking(progress)
+                    trySendBlocking(
+                        SpeedTestResult.OnProgress(
+                            percent = animPercent,
+                            transferRateBit = report.transferRateBit.toHumanReadable()
+                        )
+                    )
                 },
                 onError = { _, errorMessage ->
                     close(Throwable(errorMessage))
@@ -42,11 +47,11 @@ class SpeedTestSourceImp @Inject constructor() : SpeedTestSource {
             )
             socket.addSpeedTestListener(listener)
             if (isDownload)
-                socket.startDownload("https://$host/download?nocache${UUID.randomUUID()}&size=100000000&guid=${UUID.randomUUID()}")
+                socket.startDownload("${host.toHttps()}download?${uniqueQueries()}&size=$SIZE_DOWNLOAD")
             else
                 socket.startUpload(
-                    "https://$host/upload?nocache=${UUID.randomUUID()}&guid=${UUID.randomUUID()}",
-                    10000000
+                    "${host.toHttps()}upload?${uniqueQueries()}",
+                    SIZE_UPLOAD
                 )
 
             awaitClose {
@@ -55,5 +60,11 @@ class SpeedTestSourceImp @Inject constructor() : SpeedTestSource {
         }
             .flowOn(Dispatchers.IO)
 
+
+    private fun String.toHttps() =
+        "https://$this/"
+
+    private fun uniqueQueries() =
+        "nocache=${UUID.randomUUID()}&guid=${UUID.randomUUID()}"
 
 }

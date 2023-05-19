@@ -22,11 +22,13 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.domain.model.Server
+import kotlinx.coroutines.launch
 
 @Composable
 fun ServersModalBottomSheet(
@@ -36,11 +38,16 @@ fun ServersModalBottomSheet(
     content: @Composable () -> Unit,
     state: ModalBottomSheetState,
 ) {
+
+    val scope = rememberCoroutineScope()
+
     ModalBottomSheetLayout(
         sheetState = state,
         sheetShape = RoundedCornerShape(topStartPercent = 5, topEndPercent = 5),
         modifier = modifier,
-        sheetContent = { ServersContent(servers = servers, onChangeServer = onChangeServer) },
+        sheetContent = { ServersContent(servers = servers, onChangeServer = onChangeServer.also {
+            scope.launch { state.hide() }
+        }) },
         content = content
     )
 }

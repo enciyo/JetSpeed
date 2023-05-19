@@ -6,5 +6,7 @@ sealed interface SpeedTestResult {
         val transferRateBit: String
     ) : SpeedTestResult
 
-    object OnComplete : SpeedTestResult
+    data class OnComplete(
+        val time: String
+    ) : SpeedTestResult
 }

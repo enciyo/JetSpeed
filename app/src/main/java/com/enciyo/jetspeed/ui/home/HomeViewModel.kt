@@ -43,22 +43,17 @@ class HomeViewModel @Inject constructor(
     fun onEvent(interactions: HomeScreenInteractions) {
         when (interactions) {
             is HomeScreenInteractions.OnSelected -> onSelected(interactions.server)
-            is HomeScreenInteractions.ShowModal -> onShowModal()
         }
 
-    }
-
-    private fun onShowModal() {
-        _uiState.update { it.copy(isVisibleModal = true) }
     }
 
     private fun onSelected(server: Server) {
         updateHostUseCase.invoke(server)
             .onSuccess { result ->
-                _uiState.update { it.copy(currentServer = result, isVisibleModal = false) }
+                _uiState.update { it.copy(currentServer = result) }
             }
             .onFailure {
-                _uiState.update { it.copy(error = it.error, isVisibleModal = false) }
+                _uiState.update { it.copy(error = it.error) }
             }
             .launchIn(viewModelScope)
 
@@ -70,11 +65,8 @@ data class HomeUiState(
     val servers: List<Server> = emptyList(),
     val currentServer: Server? = null,
     val error: String? = null,
-    val isVisibleModal: Boolean = false
 )
 
 sealed interface HomeScreenInteractions {
-    object ShowModal : HomeScreenInteractions
-
     data class OnSelected(val server: Server) : HomeScreenInteractions
 }
