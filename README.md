@@ -26,12 +26,13 @@
 - [Navigation Component](https://developer.android.com/guide/navigation/navigation-getting-started) -
     - [Navigating with Compose](https://developer.android.com/jetpack/compose/navigation) - You can navigate between composables while taking advantage of the Navigation component’s infrastructure and features.
 
-## ScreenShots
+## Screenhots
 <li align= "center">
 <img src="https://github.com/enciyo/JetSpeed/blob/main/s1.png?raw=true" width = "200" height="412"/> 
 <img src="https://github.com/enciyo/JetSpeed/blob/main/s2.png?raw=true" width = "200" height="412"/> 
 <img src="https://github.com/enciyo/JetSpeed/blob/main/s3.png?raw=true" width = "200" height="412"/> 
 </li>
+
 
 ## 💪 **Architecture**
 This app uses ***[MVVM (Model View View-Model)](https://developer.android.com/jetpack/docs/guide#recommended-app-arch)*** architecture.
