@@ -3,4 +3,7 @@
     <string name="go">Go</string>
     <string name="change_server">Change Server</string>
     <string name="retry">Retry</string>
+    <string name="download">Download</string>
+    <string name="upload">Upload</string>
+    <string name="server_title">%1$s / %2$s</string>
 </resources>

@@ -26,6 +26,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.enciyo.jetspeed.R
 import com.enciyo.jetspeed.ui.component.SpeedMeter
+import com.example.EMPTY
+import com.example.ZERO
+import com.example.emptyFunction
 
 
 @Composable
@@ -33,9 +36,7 @@ fun SpeedRoute(
     vm: SpeedViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
-    SpeedContent(state = state, onRetry = {
-        vm.retry()
-    })
+    SpeedContent(state = state, onRetry = vm::retry)
 }
 
 @Composable
@@ -53,10 +54,11 @@ fun SpeedContent(
         AnimatedVisibility(visible = state.isCompleted.not()) {
             SpeedMeterContent(state = state)
         }
-        if (state.isCompleted)
+        AnimatedVisibility(visible = state.isCompleted) {
             Button(onClick = onRetry) {
                 Text(text = stringResource(R.string.retry))
             }
+        }
     }
 }
 
@@ -64,7 +66,7 @@ fun SpeedContent(
 fun SpeedMeterContent(
     modifier: Modifier = Modifier,
     state: SpeedUiState,
-){
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -89,13 +91,13 @@ fun SpeedInfoContent(
     ) {
         SpeedInfoItem(
             modifier = Modifier.weight(1f),
-            title = "Download",
+            title = stringResource(R.string.download),
             value = state.downloadTime,
             textAlign = TextAlign.End
         )
         SpeedInfoItem(
             modifier = Modifier.weight(1f),
-            title = "Upload",
+            title = stringResource(R.string.upload),
             value = state.uploadTime,
             textAlign = TextAlign.Start
         )
@@ -134,11 +136,11 @@ fun SpeedInfoItem(
 fun SpeedPreview() {
     SpeedContent(
         state = SpeedUiState(
-            uploadTime = "",
-            downloadTime = "",
-            speedText = "",
-            progress = 0.3f
+            uploadTime = String.EMPTY,
+            downloadTime = String.EMPTY,
+            speedText = String.EMPTY,
+            progress = Float.ZERO
         ),
-        onRetry = {}
+        onRetry = emptyFunction()
     )
 }

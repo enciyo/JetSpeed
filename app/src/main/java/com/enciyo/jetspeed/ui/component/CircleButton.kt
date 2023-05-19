@@ -11,18 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 
-//val onText = text.ifEmpty { stringResource(id = R.string.go) }
-//if (text.isEmpty()) MaterialTheme.typography.displayLarge else MaterialTheme.typography.titleMedium
+private val SIZE_BUTTON get() = 180.dp
 
 @Composable
 fun CircleButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     text: String,
-    style: TextStyle
 ) {
     Text(
         text = text,
@@ -30,9 +27,9 @@ fun CircleButton(
             .clip(shape = CircleShape)
             .background(MaterialTheme.colorScheme.primary)
             .clickable(onClick = onClick)
-            .size(180.dp)
+            .size(SIZE_BUTTON)
             .wrapContentSize(align = Alignment.Center),
         color = MaterialTheme.colorScheme.onPrimary,
-        style = style,
+        style = MaterialTheme.typography.displayLarge,
     )
 }

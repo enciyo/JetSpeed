@@ -26,7 +26,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.enciyo.jetspeed.R
 import com.example.domain.model.Server
 import kotlinx.coroutines.launch
 
@@ -45,9 +47,13 @@ fun ServersModalBottomSheet(
         sheetState = state,
         sheetShape = RoundedCornerShape(topStartPercent = 5, topEndPercent = 5),
         modifier = modifier,
-        sheetContent = { ServersContent(servers = servers, onChangeServer = onChangeServer.also {
-            scope.launch { state.hide() }
-        }) },
+        sheetContent = {
+            ServersContent(
+                servers = servers,
+                onChangeServer = onChangeServer.also {
+                    scope.launch { state.hide() }
+                })
+        },
         content = content
     )
 }
@@ -85,7 +91,7 @@ fun ServerItemContent(
         modifier = modifier.clickable(onClick = { onChangeServer(server) }),
         text = {
             Text(
-                text = server.name + "/" + server.country,
+                text = stringResource(id = R.string.server_title, server.name, server.country),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )

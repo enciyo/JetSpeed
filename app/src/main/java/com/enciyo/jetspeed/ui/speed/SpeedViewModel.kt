@@ -1,9 +1,10 @@
 package com.enciyo.jetspeed.ui.speed
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.EMPTY
+import com.example.ZERO
+import com.example.HYPHEN
 import com.example.domain.Repository
 import com.example.domain.model.SpeedTestResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,62 +18,59 @@ import javax.inject.Inject
 @HiltViewModel
 class SpeedViewModel @Inject constructor(private val repository: Repository) : ViewModel() {
 
-
     private val _uiState = MutableStateFlow(SpeedUiState())
     val state = _uiState.asStateFlow()
-
 
     init {
         start()
     }
 
-    private fun start(){
+    private fun start() {
         getDownloadSpeed()
     }
-
 
     private fun getDownloadSpeed() {
         repository.getDownloadSpeed()
             .onEach { result ->
                 when (result) {
-                    is SpeedTestResult.OnComplete -> {
-                        _uiState.update {
-                            it.copy(
-                                downloadTime = result.time,
-                                speedText = "",
-                            )
-                        }
-                        getUploadSpeed()
-                    }
+                    is SpeedTestResult.OnComplete -> onCompletedDownloadSpeed(result)
+                    is SpeedTestResult.OnProgress -> onProgress(result)
+                }
+            }
+            .launchIn(viewModelScope)
+    }
 
-                    is SpeedTestResult.OnProgress -> {
-                        onProgress(result)
-                    }
+    private fun getUploadSpeed() {
+        repository.getUploadSpeed()
+            .onEach { result ->
+                when (result) {
+                    is SpeedTestResult.OnComplete -> onCompletedUploadSpeed(result)
+                    is SpeedTestResult.OnProgress -> onProgress(result)
                 }
             }
             .launchIn(viewModelScope)
     }
 
 
-    private fun getUploadSpeed() {
-        repository.getUploadSpeed()
-            .onEach { result ->
-                when (result) {
-                    is SpeedTestResult.OnComplete -> {
-                        _uiState.update {
-                            it.copy(
-                                uploadTime = result.time,
-                                speedText = "",
-                                progress = 0f,
-                                isCompleted = true,
-                            )
-                        }
-                    }
+    private fun onCompletedDownloadSpeed(result: SpeedTestResult.OnComplete) {
+        _uiState.update { exist ->
+            exist.copy(
+                downloadTime = result.time,
+                speedText = String.EMPTY
+            )
+        }
+        getUploadSpeed()
+    }
 
-                    is SpeedTestResult.OnProgress -> onProgress(result)
-                }
-            }
-            .launchIn(viewModelScope)
+    private fun onCompletedUploadSpeed(result: SpeedTestResult.OnComplete) {
+        _uiState.update { exist ->
+            exist.copy(
+                uploadTime = result.time,
+                speedText = String.EMPTY,
+                progress = Float.ZERO,
+                isCompleted = true
+            )
+        }
     }
 
     private fun onProgress(result: SpeedTestResult.OnProgress) {
@@ -90,14 +88,13 @@ class SpeedViewModel @Inject constructor(private val repository: Repository) : V
         start()
     }
 
-
 }
 
 
 data class SpeedUiState(
-    val uploadTime: String = "-",
-    val downloadTime: String = "-",
-    val speedText: String = "",
-    val progress: Float = 0f,
+    val uploadTime: String = String.HYPHEN,
+    val downloadTime: String = String.HYPHEN,
+    val speedText: String = String.EMPTY,
+    val progress: Float = Float.ZERO,
     val isCompleted: Boolean = false
 )

@@ -24,40 +24,47 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        getServersUseCase.invoke(Unit)
-            .onSuccess { settings ->
-                _uiState.update {
-                    it.copy(
-                        servers = settings,
-                        currentServer = settings.firstOrNull()
-                    )
-                }
-            }
-            .onFailure { throwable ->
-                _uiState.update { it.copy(error = throwable.message) }
-            }
-            .launchIn(viewModelScope)
-    }
-
     fun onEvent(interactions: HomeScreenInteractions) {
         when (interactions) {
             is HomeScreenInteractions.OnSelected -> onSelected(interactions.server)
         }
+    }
 
+    init {
+        getServers()
+    }
+
+    private fun getServers() {
+        getServersUseCase.invoke(Unit)
+            .onSuccess(::onServersSuccess)
+            .onFailure(::onError)
+            .launchIn(viewModelScope)
     }
 
     private fun onSelected(server: Server) {
         updateHostUseCase.invoke(server)
-            .onSuccess { result ->
-                _uiState.update { it.copy(currentServer = result) }
-            }
-            .onFailure {
-                _uiState.update { it.copy(error = it.error) }
-            }
+            .onSuccess(::onSelectedSuccess)
+            .onFailure(::onError)
             .launchIn(viewModelScope)
-
     }
+
+    private fun onServersSuccess(servers: List<Server>) {
+        _uiState.update { exist ->
+            exist.copy(
+                servers = servers,
+                currentServer = servers.firstOrNull()
+            )
+        }
+    }
+
+    private fun onSelectedSuccess(server: Server) {
+        _uiState.update { exist -> exist.copy(currentServer = server) }
+    }
+
+    private fun onError(error: Throwable) {
+        _uiState.update { exist -> exist.copy(error = error.message) }
+    }
+
 
 }
 
