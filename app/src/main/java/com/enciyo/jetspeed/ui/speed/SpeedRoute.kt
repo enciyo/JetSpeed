@@ -18,11 +18,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.enciyo.jetspeed.R
 import com.enciyo.jetspeed.ui.component.SpeedMeter
 
 
@@ -49,14 +51,28 @@ fun SpeedContent(
     ) {
         SpeedInfoContent(state = state)
         AnimatedVisibility(visible = state.isCompleted.not()) {
-            SpeedMeter(progress = state.progress)
+            SpeedMeterContent(state = state)
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = state.speedText)
         if (state.isCompleted)
             Button(onClick = onRetry) {
-                Text(text = "Retry")
+                Text(text = stringResource(R.string.retry))
             }
+    }
+}
+
+@Composable
+fun SpeedMeterContent(
+    modifier: Modifier = Modifier,
+    state: SpeedUiState,
+){
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        SpeedMeter(progress = state.progress)
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = state.speedText)
     }
 }
 
