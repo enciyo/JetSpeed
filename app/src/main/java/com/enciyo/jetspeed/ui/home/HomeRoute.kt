@@ -17,13 +17,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.enciyo.jetspeed.R
+import com.enciyo.jetspeed.Screens
 import com.enciyo.jetspeed.ui.component.CircleButton
 import com.enciyo.jetspeed.ui.theme.JetSpeedTheme
 import com.example.domain.model.Server
@@ -48,21 +52,25 @@ fun HomeRoute(
     val stateSheet = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
 
+    val onClickChangeServer: () -> Unit = remember(key1 = vm) {
+        { scope.launch { stateSheet.show() } }
+    }
+
+    val onChangeServer: (Server) -> Unit = remember(key1 = vm) {
+        { vm.onEvent(HomeScreenInteractions.OnSelected(it)) }
+    }
+
     ServersModalBottomSheet(
         servers = state.servers,
         state = stateSheet,
         content = {
             HomeContent(
                 state = state,
-                onClickChangeServer = {
-                    scope.launch { stateSheet.show() }
-                },
+                onClickChangeServer = onClickChangeServer,
                 onClickStart = onNavigateSpeedRoute
             )
         },
-        onChangeServer = {
-            vm.onEvent(HomeScreenInteractions.OnSelected(it))
-        },
+        onChangeServer = onChangeServer,
     )
 }
 

@@ -8,6 +8,8 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -39,9 +41,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
+    val onNavigateSpeedRoute: () -> Unit  = remember(navController) {
+        { navController.navigate(Screens.MEASURING_SPEED) }
+    }
     NavHost(navController = navController, startDestination = Screens.HOME) {
         composable(Screens.HOME) {
-            HomeRoute(onNavigateSpeedRoute = { navController.navigate(Screens.MEASURING_SPEED) })
+            HomeRoute(onNavigateSpeedRoute = onNavigateSpeedRoute)
         }
         composable(Screens.MEASURING_SPEED) {
             SpeedRoute()
